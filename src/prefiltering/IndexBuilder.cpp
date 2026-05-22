@@ -186,8 +186,10 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
     //=========================================================================================================
     //TODO find smart way to remove extrem k-mers without harming huge protein families
+    Debug(Debug::INFO) << "Index table: Compute selective residues\n";
     size_t lowSelectiveResidues = 0;
     //const float dbSize = static_cast<float>(dbTo - dbFrom);
+#pragma omp for schedule(dynamic, 100) reduction(+:lowSelectiveResidues)
     for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
       const size_t res = (size_t) indexTable->getOffset(kmerIdx);
       const float selectivityOfKmer = (static_cast<float>(res)/static_cast<float>(dbSize));
