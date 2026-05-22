@@ -107,7 +107,8 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
         unsigned int *buffer = static_cast<unsigned int*>(malloc(seq->getMaxLen() * sizeof(unsigned int)));
         unsigned int bufferSize = seq->getMaxLen();
-        #pragma omp for schedule(dynamic, 100) reduction(+:totalKmerCount, maskedResidues)
+        
+#pragma omp for schedule(dynamic, 100) reduction(+:totalKmerCount, maskedResidues)
         for (size_t id = dbFrom; id < dbTo; id++) {
             progress.updateProgress();
 
@@ -186,20 +187,23 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
     //=========================================================================================================
     //TODO find smart way to remove extrem k-mers without harming huge protein families
-    Debug(Debug::INFO) << "Index table: Compute selective residues\n";
-    size_t lowSelectiveResidues = 0;
-    //const float dbSize = static_cast<float>(dbTo - dbFrom);
-#pragma omp for schedule(dynamic, 100) reduction(+:lowSelectiveResidues)
-    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
-      const size_t res = (size_t) indexTable->getOffset(kmerIdx);
-      const float selectivityOfKmer = (static_cast<float>(res)/static_cast<float>(dbSize));
-      if(selectivityOfKmer > 0.005){
-        indexTable->getOffsets()[kmerIdx] = 0;
-        lowSelectiveResidues += res;
-      }
-    }
-    Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
-    Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
+    // FT 22/5/2026 : This does not seem to work, it hangs or crashes.
+    //
+//     Debug(Debug::INFO) << "Index table: Compute selective residues\n";
+//     size_t lowSelectiveResidues = 0;
+//     //const float dbSize = static_cast<float>(dbTo - dbFrom);
+    
+// #pragma omp parallel for schedule(dynamic, 100) reduction(+:lowSelectiveResidues)
+//     for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
+//       const size_t res = (size_t) indexTable->getOffset(kmerIdx);
+//       const float selectivityOfKmer = (static_cast<float>(res)/static_cast<float>(dbSize));
+//       if(selectivityOfKmer > 0.005){
+//         indexTable->getOffsets()[kmerIdx] = 0;
+//         lowSelectiveResidues += res;
+//       }
+//     }
+//     Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
+//     Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
     //=========================================================================================================
     if(indexTable != NULL){
       indexTable->initMemory(info->tableSize);
