@@ -185,21 +185,21 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     dbr->remapData();
 
     //TODO find smart way to remove extrem k-mers without harming huge protein families
-//    size_t lowSelectiveResidues = 0;
-//    const float dbSize = static_cast<float>(dbTo - dbFrom);
-//    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
-//        size_t res = (size_t) indexTable->getOffset(kmerIdx);
-//        float selectivityOfKmer = (static_cast<float>(res)/dbSize);
-//        if(selectivityOfKmer > 0.005){
-//            indexTable->getOffset()[kmerIdx] = 0;
-//            lowSelectiveResidues += res;
-//        }
-//    }
-//    Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
-//    Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
+    size_t lowSelectiveResidues = 0;
+    const float dbSize = static_cast<float>(dbTo - dbFrom);
+    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
+      size_t res = (size_t) indexTable->getOffset(kmerIdx);
+      float selectivityOfKmer = (static_cast<float>(res)/dbSize);
+      if(selectivityOfKmer > 0.005){
+        indexTable->getOffset()[kmerIdx] = 0;
+        lowSelectiveResidues += res;
+      }
+    }
+    Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
+    Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
     if(indexTable != NULL){
-        indexTable->initMemory(info->tableSize);
-        indexTable->init();
+      indexTable->initMemory(info->tableSize);
+      indexTable->init();
     }
 
     delete info;
