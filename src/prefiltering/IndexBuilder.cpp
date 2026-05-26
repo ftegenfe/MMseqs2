@@ -59,6 +59,8 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                                 bool mask, bool maskLowerCaseMode, float maskProb, int maskNrepeats, int targetSearchMode) {
     Debug(Debug::INFO) << "Index table: counting k-mers\n";
 
+    Timer tpre;
+    
     const bool isProfile = Parameters::isEqualDbtype(seq->getSeqType(), Parameters::DBTYPE_HMM_PROFILE);
     const bool isTargetSimiliarKmerSearch = isProfile || targetSearchMode;
     dbTo = std::min(dbTo, dbr->getSize());
@@ -79,7 +81,10 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     size_t maskedResidues = 0;
     size_t totalKmerCount = 0;
     
+    Debug(Debug::INFO) << "Index table: time for variable init " << tpre.lap() << "\n";
+    
     Timer tfilldb;
+    
 #pragma omp parallel
     {
         unsigned int thread_idx = 0;
