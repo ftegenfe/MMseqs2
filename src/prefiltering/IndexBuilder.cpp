@@ -135,7 +135,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
             if (isTargetSimiliarKmerSearch) {
                 // Find out if we should also mask profiles
                 if(indexTable != NULL){
-                  //#pragma omp critical
+#pragma omp critical
                   {
                     totalKmerCount += indexTable->addSimilarKmerCount(&s, generator);
                   }
@@ -145,13 +145,13 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     for (int i = 0; i < s.L; i++) {
                         s.numSequence[i] = s.numSequence[i] * auxAlphabetSize + s.numSequenceAux[i];
                     }
-                    //#pragma omp critical
+#pragma omp critical
                     {
                       sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                     }
                 } else {
                     unsigned char * seq = (isProfile) ? s.numConsensusSequence : s.numSequence;
-                    //#pragma omp critical
+#pragma omp critical
                     {
                       sequenceLookup->addSequence(seq, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                     }
@@ -164,7 +164,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
                 // Count k-mers before reconstructing packed bytes
                 if(indexTable != NULL){
-                  //#pragma omp critical
+#pragma omp critical
                   {
                     totalKmerCount += indexTable->addKmerCount(&s, &idxer, buffer, kmerThr, idScoreLookup);
                   }
@@ -176,12 +176,12 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     for (int i = 0; i < s.L; i++) {
                         s.numSequence[i] = s.numSequence[i] * auxAlphabetSize + s.numSequenceAux[i];
                     }
-                    //#pragma omp critical
+#pragma omp critical
                     {
                       sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                     }
                 } else {
-                  //#pragma omp critical
+#pragma omp critical
                   {
                     sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                   }
@@ -296,7 +296,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                 unsigned int qKey = dbr->getDbKey(id);
                 if (isTargetSimiliarKmerSearch) {
                     s.mapSequence(id - dbFrom, qKey, dbr->getData(id, thread_idx), dbr->getSeqLen(id));
-                    //#pragma omp critical
+#pragma omp critical
                     {
                       indexTable->addSimilarSequence(&s, generator, &buffer, bufferSize, &idxer);
                     }
@@ -304,7 +304,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     // sequenceLookup has packed bytes with masking baked in (seq=X at masked positions)
                     // mapSequence applies primaryRemap to recover masked seq values for k-mer indexing
                     s.mapSequence(id - dbFrom, qKey, sequenceLookup->getSequence(id - dbFrom));
-                    //#pragma omp critical
+#pragma omp critical
                     {
                       indexTable->addSequence(&s, &idxer, &buffer, bufferSize, kmerThr, idScoreLookup);
                     }
