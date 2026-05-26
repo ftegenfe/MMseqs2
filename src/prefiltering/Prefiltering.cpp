@@ -902,7 +902,7 @@ bool Prefiltering::runSplit(const std::string &resultDB, const std::string &resu
             }
         } // step end
     }
-    Debug(Debug::INFO) << "TIME prefiltering scores calc " >> trunsplit.lap() "\n";
+    Debug(Debug::INFO) << "TIME prefiltering scores calc " << trunsplit.lap() << "\n";
     if (Debug::debugLevel >= Debug::INFO) {
         statistics_t stats(kmersPerPos / static_cast<double>(totalQueryDBSize),
                            dbMatches / totalQueryDBSize,
