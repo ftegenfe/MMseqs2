@@ -74,13 +74,13 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
     // identical scores for memory reduction code
     char *idScoreLookup = getScoreLookup(subMat);
-    Debug::Progress progress(dbTo-dbFrom);
+    //Debug::Progress progress(dbTo-dbFrom);
     bool needMasking = (mask == 1 || maskNrepeats > 0  || maskLowerCaseMode == 1);
     size_t maskedResidues = 0;
     size_t totalKmerCount = 0;
     
     Timer tfilldb;
-    #pragma omp parallel
+#pragma omp parallel
     {
         unsigned int thread_idx = 0;
 #ifdef OPENMP
@@ -112,10 +112,10 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
         
 #pragma omp for schedule(static, 256) reduction(+:totalKmerCount, maskedResidues)
         for (size_t id = dbFrom; id < dbTo; id++) {
-#pragma omp critical
-            {
-                progress.updateProgress();
-            }
+// #pragma omp critical
+//             {
+//                 progress.updateProgress();
+//             }
 
             s.resetCurrPos();
             char *seqData = dbr->getData(id, thread_idx);
@@ -194,7 +194,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
         }
     }
 
-    Debug(Debug::INFO) << "Index table: initial processing done in "<< tfilldb.lap() << '\n"';
+    Debug(Debug::INFO) << "Index table: initial processing done in "<< tfilldb.lap() << '\n';
 
     Debug(Debug::INFO) << "Index table: Masked residues: " << maskedResidues << "\n";
     if(indexTable != NULL && totalKmerCount == 0) {
@@ -206,8 +206,10 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
         }
     }
 
+    Debug(Debug::INFO) << "Index table: remap data " << '\n';
+    Timer tremap;
     dbr->remapData();
-
+    Debug(Debug::INFO) << "Index table: remap data DONE " << tremap.lap() << '\n';
     //=========================================================================================================
     //TODO find smart way to remove extrem k-mers without harming huge protein families
     // FT 22/5/2026 : This does not seem to work, it hangs or crashes.
@@ -253,7 +255,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
     delete info;
     if(indexTable != NULL) {
-        Debug::Progress progress2(dbTo - dbFrom);
+      //Debug::Progress progress2(dbTo - dbFrom);
         Debug(Debug::INFO) << "Index table: fill\n";
 #pragma omp parallel
         {
@@ -281,10 +283,10 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 #pragma omp for schedule(static, 256)
             for (size_t id = dbFrom; id < dbTo; id++) {
                 s.resetCurrPos();
-#pragma omp critical
-                {
-                    progress2.updateProgress();
-                }
+// #pragma omp critical
+//                 {
+//                     progress2.updateProgress();
+//                 }
 
                 unsigned int qKey = dbr->getDbKey(id);
                 if (isTargetSimiliarKmerSearch) {
