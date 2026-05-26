@@ -145,13 +145,13 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     for (int i = 0; i < s.L; i++) {
                         s.numSequence[i] = s.numSequence[i] * auxAlphabetSize + s.numSequenceAux[i];
                     }
-#pragma omp critical
+                    //#pragma omp critical
                     {
                       sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                     }
                 } else {
                     unsigned char * seq = (isProfile) ? s.numConsensusSequence : s.numSequence;
-#pragma omp critical
+                    //#pragma omp critical
                     {
                       sequenceLookup->addSequence(seq, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                     }
@@ -176,12 +176,12 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     for (int i = 0; i < s.L; i++) {
                         s.numSequence[i] = s.numSequence[i] * auxAlphabetSize + s.numSequenceAux[i];
                     }
-#pragma omp critical
+                    //#pragma omp critical
                     {
                       sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                     }
                 } else {
-#pragma omp critical
+                  //#pragma omp critical
                   {
                     sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
                   }

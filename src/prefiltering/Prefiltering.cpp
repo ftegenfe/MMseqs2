@@ -799,8 +799,10 @@ bool Prefiltering::runSplit(const std::string &resultDB, const std::string &resu
     Debug(Debug::INFO) << "Starting prefiltering scores calculation (step " << (split + 1) << " of " << splits << ")\n";
     Debug(Debug::INFO) << "Query db start " << (queryFrom + 1) << " to " << queryFrom + querySize << "\n";
     Debug(Debug::INFO) << "Target db start " << (dbFrom + 1) << " to " << dbFrom + dbSize << "\n";
-    Debug::Progress progress(querySize);
+    //Debug::Progress progress(querySize);
 
+    Timer trunsplit;
+    
 #pragma omp parallel num_threads(localThreads)
     {
         unsigned int thread_idx = 0;
@@ -831,7 +833,7 @@ bool Prefiltering::runSplit(const std::string &resultDB, const std::string &resu
 
 #pragma omp for schedule(dynamic, 1) reduction (+: kmersPerPos, resSize, dbMatches, doubleMatches, querySeqLenSum, diagonalOverflow)
         for (size_t id = queryFrom; id < queryFrom + querySize; id++) {
-            progress.updateProgress();
+          //progress.updateProgress();
             // get query sequence
             char *seqData = qdbr->getData(id, thread_idx);
             unsigned int qKey = qdbr->getDbKey(id);
@@ -900,7 +902,7 @@ bool Prefiltering::runSplit(const std::string &resultDB, const std::string &resu
             }
         } // step end
     }
-
+    Debug(Debug::INFO) << "TIME prefiltering scores calc " >> trunsplit.lap() "\n";
     if (Debug::debugLevel >= Debug::INFO) {
         statistics_t stats(kmersPerPos / static_cast<double>(totalQueryDBSize),
                            dbMatches / totalQueryDBSize,
