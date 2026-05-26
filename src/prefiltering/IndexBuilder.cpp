@@ -193,16 +193,29 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     size_t lowSelectiveResidues = 0;
     //const float dbSize = static_cast<float>(dbTo - dbFrom);
     
-#pragma omp parallel for schedule(dynamic, 100) reduction(+:lowSelectiveResidues)
-     for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
-       const size_t res = (size_t) indexTable->getOffset(kmerIdx);
-       const float selectivityOfKmer = (static_cast<float>(res)/static_cast<float>(dbSize));
-       if(selectivityOfKmer > 0.005){
-         indexTable->getOffsets()[kmerIdx] = 0;
-         lowSelectiveResidues += res;
-       }
-     }
-     Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
+    // Avoid false sharing: separate marking phase (parallel) from write phase (sequential)
+    std::vector<bool> isNonSelective(indexTable->getTableSize(), false);
+    const float dbSizeFloat = static_cast<float>(dbSize);
+    const float threshold = 0.005f;
+    
+    // Phase 1: Parallel marking (only reads from indexTable, writes to thread-local marks)
+#pragma omp parallel for schedule(static, 256)
+    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
+        const size_t res = (size_t) indexTable->getOffset(kmerIdx);
+        if(static_cast<float>(res) > threshold * dbSizeFloat) {  // Avoid division
+            isNonSelective[kmerIdx] = true;
+        }
+    }
+    
+    // Phase 2: Single-threaded write (no cache line conflicts between threads)
+    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
+        if(isNonSelective[kmerIdx]) {
+            const size_t res = (size_t) indexTable->getOffset(kmerIdx);
+            indexTable->getOffsets()[kmerIdx] = 0;
+            lowSelectiveResidues += res;
+        }
+    }
+    Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
      Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
     //=========================================================================================================
     if(indexTable != NULL){
