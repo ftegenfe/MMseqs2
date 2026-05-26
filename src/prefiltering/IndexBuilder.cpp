@@ -304,11 +304,15 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
             free(buffer);
         }
     }
+    Debug(Debug::INFO) << "Index table: fill DONE\n";
     if(idScoreLookup!=NULL){
         delete[] idScoreLookup;
     }
     if(indexTable != NULL){
-        indexTable->revertPointer();
-        indexTable->sortDBSeqLists();
+      Debug(Debug::INFO) << "Index table: revert pointer\n";
+      indexTable->revertPointer();
+      Debug(Debug::INFO) << "Index table: sort DB seq lists\n";
+      indexTable->sortDBSeqLists();
+      Debug(Debug::INFO) << "Index table: DONE sort DB seq lists\n";
     }
 }

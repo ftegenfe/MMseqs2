@@ -179,14 +179,24 @@ public:
         return (entries + offsets[kmer]);
     }
 
-    void sortDBSeqLists() {
-        #pragma omp parallel for
-        for (size_t i = 0; i < tableSize; i++) {
-            size_t entrySize;
-            IndexEntryLocal *entries = getDBSeqList(i, &entrySize);
-            SORT_SERIAL(entries, entries + entrySize, IndexEntryLocal::comapreByIdAndPos);
+  void sortDBSeqLists() {
+    Debug(Debug::INFO) << "start sorting table of size " << tableSize << '\n';
+    Timer timer;
+#pragma omp parallel for
+    for (size_t i = 0; i < tableSize; i++) {
+      size_t entrySize;
+      IndexEntryLocal *entries = getDBSeqList(i, &entrySize);
+      if ( entries == nullptr ) {
+#pragma omp critical
+        {
+          Debug(Debug::INFO) << "--- SORTING table index fails at " << i << "/" << tableSize << '\n';
         }
+      } else {
+        SORT_SERIAL(entries, entries + entrySize, IndexEntryLocal::comapreByIdAndPos);
+      }
     }
+    Debug(Debug::INFO) << "sorting done in " << timer.lap() << '\n';
+  }
 
     // get pointer to entries array
     IndexEntryLocal *getEntries() {
