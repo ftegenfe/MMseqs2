@@ -78,6 +78,8 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     bool needMasking = (mask == 1 || maskNrepeats > 0  || maskLowerCaseMode == 1);
     size_t maskedResidues = 0;
     size_t totalKmerCount = 0;
+    
+    Timer tfilldb;
     #pragma omp parallel
     {
         unsigned int thread_idx = 0;
@@ -192,7 +194,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
         }
     }
 
-
+    Debug(Debug::INFO) << "Index table: initial processing done in "<< tfilldb.lap() << '\n"';
 
     Debug(Debug::INFO) << "Index table: Masked residues: " << maskedResidues << "\n";
     if(indexTable != NULL && totalKmerCount == 0) {
@@ -220,25 +222,30 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     const float threshold = 0.005f;
     
     // Phase 1: Parallel marking (only reads from indexTable, writes to thread-local marks)
+    {
+      Timer tselect;
 #pragma omp parallel for schedule(static, 256)
-    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
+      for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
         const size_t res = (size_t) indexTable->getOffset(kmerIdx);
         if(static_cast<float>(res) > threshold * dbSizeFloat) {  // Avoid division
-            isNonSelective[kmerIdx] = true;
+          isNonSelective[kmerIdx] = true;
         }
-    }
+      }
     
-    // Phase 2: Single-threaded write (no cache line conflicts between threads)
-    for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
+      // Phase 2: Single-threaded write (no cache line conflicts between threads)
+      for(size_t kmerIdx = 0; kmerIdx < indexTable->getTableSize(); kmerIdx++){
         if(isNonSelective[kmerIdx]) {
-            const size_t res = (size_t) indexTable->getOffset(kmerIdx);
-            indexTable->getOffsets()[kmerIdx] = 0;
-            lowSelectiveResidues += res;
+          const size_t res = (size_t) indexTable->getOffset(kmerIdx);
+          indexTable->getOffsets()[kmerIdx] = 0;
+          lowSelectiveResidues += res;
         }
+      }
+      Debug(Debug::INFO) << "Index table: Removed "<< lowSelectiveResidues <<" none selective residues\n";
+      Debug(Debug::INFO) << "Index table: time elapsed "<< tselect.lap() << '\n';
     }
-    Debug(Debug::INFO) << "Index table: Remove "<< lowSelectiveResidues <<" none selective residues\n";
-     Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
+    Debug(Debug::INFO) << "Index table: init... from "<< dbFrom << " to "<< dbTo << "\n";
     //=========================================================================================================
+    
     if(indexTable != NULL){
       indexTable->initMemory(info->tableSize);
       indexTable->init();
@@ -271,7 +278,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     generator->setDivideStrategy(&three, &two);
                 }
             }
-#pragma omp for schedule(dynamic, 100)
+#pragma omp for schedule(static, 256)
             for (size_t id = dbFrom; id < dbTo; id++) {
                 s.resetCurrPos();
 #pragma omp critical
