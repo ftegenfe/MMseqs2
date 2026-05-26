@@ -194,7 +194,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
         }
     }
 
-    Debug(Debug::INFO) << "Index table: initial processing done in "<< tfilldb.lap() << '\n"';
+    Debug(Debug::INFO) << "Index table: initial processing done in "<< tfilldb.lap() << '\n';
 
     Debug(Debug::INFO) << "Index table: Masked residues: " << maskedResidues << "\n";
     if(indexTable != NULL && totalKmerCount == 0) {
