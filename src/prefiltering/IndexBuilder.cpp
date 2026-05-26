@@ -108,9 +108,12 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
         unsigned int *buffer = static_cast<unsigned int*>(malloc(seq->getMaxLen() * sizeof(unsigned int)));
         unsigned int bufferSize = seq->getMaxLen();
         
-#pragma omp for schedule(dynamic, 100) reduction(+:totalKmerCount, maskedResidues)
+#pragma omp for schedule(static, 256) reduction(+:totalKmerCount, maskedResidues)
         for (size_t id = dbFrom; id < dbTo; id++) {
-            progress.updateProgress();
+#pragma omp critical
+            {
+                progress.updateProgress();
+            }
 
             s.resetCurrPos();
             char *seqData = dbr->getData(id, thread_idx);
@@ -125,17 +128,26 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
             if (isTargetSimiliarKmerSearch) {
                 // Find out if we should also mask profiles
                 if(indexTable != NULL){
+#pragma omp critical
+                  {
                     totalKmerCount += indexTable->addSimilarKmerCount(&s, generator);
+                  }
                 }
                 if (s.activePrimaryRemap != NULL) {
                     // Reconstruct packed bytes from remapped seq + aux values
                     for (int i = 0; i < s.L; i++) {
                         s.numSequence[i] = s.numSequence[i] * auxAlphabetSize + s.numSequenceAux[i];
                     }
-                    sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+#pragma omp critical
+                    {
+                      sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+                    }
                 } else {
                     unsigned char * seq = (isProfile) ? s.numConsensusSequence : s.numSequence;
-                    sequenceLookup->addSequence(seq, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+#pragma omp critical
+                    {
+                      sequenceLookup->addSequence(seq, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+                    }
                 }
             } else {
                 // Do not mask if column state sequences are used
@@ -145,7 +157,10 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 
                 // Count k-mers before reconstructing packed bytes
                 if(indexTable != NULL){
+#pragma omp critical
+                  {
                     totalKmerCount += indexTable->addKmerCount(&s, &idxer, buffer, kmerThr, idScoreLookup);
+                  }
                 }
 
                 if (s.activePrimaryRemap != NULL) {
@@ -154,9 +169,15 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
                     for (int i = 0; i < s.L; i++) {
                         s.numSequence[i] = s.numSequence[i] * auxAlphabetSize + s.numSequenceAux[i];
                     }
-                    sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+#pragma omp critical
+                    {
+                      sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+                    }
                 } else {
+#pragma omp critical
+                  {
                     sequenceLookup->addSequence(s.numSequence, s.L, id - dbFrom, info->sequenceOffsets[id - dbFrom]);
+                  }
                 }
             }
         }
@@ -253,17 +274,26 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
 #pragma omp for schedule(dynamic, 100)
             for (size_t id = dbFrom; id < dbTo; id++) {
                 s.resetCurrPos();
-                progress2.updateProgress();
+#pragma omp critical
+                {
+                    progress2.updateProgress();
+                }
 
                 unsigned int qKey = dbr->getDbKey(id);
                 if (isTargetSimiliarKmerSearch) {
                     s.mapSequence(id - dbFrom, qKey, dbr->getData(id, thread_idx), dbr->getSeqLen(id));
-                    indexTable->addSimilarSequence(&s, generator, &buffer, bufferSize, &idxer);
+#pragma omp critical
+                    {
+                      indexTable->addSimilarSequence(&s, generator, &buffer, bufferSize, &idxer);
+                    }
                 } else {
                     // sequenceLookup has packed bytes with masking baked in (seq=X at masked positions)
                     // mapSequence applies primaryRemap to recover masked seq values for k-mer indexing
                     s.mapSequence(id - dbFrom, qKey, sequenceLookup->getSequence(id - dbFrom));
-                    indexTable->addSequence(&s, &idxer, &buffer, bufferSize, kmerThr, idScoreLookup);
+#pragma omp critical
+                    {
+                      indexTable->addSequence(&s, &idxer, &buffer, bufferSize, kmerThr, idScoreLookup);
+                    }
                 }
             }
 
