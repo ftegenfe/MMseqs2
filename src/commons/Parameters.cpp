@@ -467,6 +467,7 @@ Parameters::Parameters():
     // prefilter
     prefilter.push_back(&PARAM_SUB_MAT);
     prefilter.push_back(&PARAM_SEED_SUB_MAT);
+    prefilter.push_back(&PARAM_SEL);
     prefilter.push_back(&PARAM_S);
     prefilter.push_back(&PARAM_K);
     prefilter.push_back(&PARAM_TARGET_SEARCH_MODE);
