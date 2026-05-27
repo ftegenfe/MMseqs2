@@ -232,10 +232,12 @@ void PrefilteringIndexReader::createIndexFile(const std::string &outDB,
             indexTable = NULL;
         }
         SequenceLookup *sequenceLookup = NULL;
+        
+        float selectiveThreshold = 0.005; // FT added
         if(needKmerIndex || needSequenceLookup){
             IndexBuilder::fillDatabase(indexTable, &sequenceLookup,
                                        *subMat, s3, s2, &seq, dbr1, dbFrom, dbFrom + dbSize, kmerThr,
-                                       maskMode, maskLowerCase, maskProb, maskNrepeats, targetSearchMode);
+                                       maskMode, maskLowerCase, maskProb, maskNrepeats, targetSearchMode, selectiveThreshold);
             if (sequenceLookup == NULL) {
                 Debug(Debug::ERROR) << "Invalid mask mode. No sequence lookup created!\n";
                 EXIT(EXIT_FAILURE);
