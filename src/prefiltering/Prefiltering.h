@@ -101,6 +101,7 @@ private:
     bool takeOnlyBestKmer;
     size_t maxResListLen;
 
+  const float selectiveThreshold;
     const float sensitivity;
     size_t maxSeqLen;
     int querySeqType;

@@ -44,6 +44,7 @@ Prefiltering::Prefiltering(const std::string &queryDB,
         targetSeqType(targetSeqType),
         targetSearchMode(par.targetSearchMode),
         maxResListLen(par.maxResListLen),
+  selectiveThreshold(par.selectiveThreshold),
         sensitivity(par.sensitivity),
         maxSeqLen(par.maxSeqLen),
         querySeqType(querySeqType),
@@ -551,7 +552,8 @@ void Prefiltering::getIndexTable(int split, size_t dbFrom, size_t dbSize) {
                                    _3merSubMatrix, _2merSubMatrix,
                                    &tseq, tdbr, dbFrom, dbFrom + dbSize,
                                    localKmerThr, maskMode, maskLowerCaseMode,
-                                   maskProb, maskNrepeats, targetSearchMode);
+                                   maskProb, maskNrepeats, targetSearchMode,
+                                   selectiveThreshold);
 
         // sequenceLookup has to be temporarily present to speed up masking
         // afterwards its not needed anymore without diagonal scoring

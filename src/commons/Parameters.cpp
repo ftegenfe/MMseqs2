@@ -35,6 +35,7 @@ Parameters::Parameters():
         scoringMatrixFile(NuclAA<std::string>("INVALID", "INVALID")),
         seedScoringMatrixFile(NuclAA<std::string>("INVALID", "INVALID")),
         alphabetSize(NuclAA<int>(INT_MAX,INT_MAX)),
+        PARAM_SEL(PARAM_SEL_ID, "--sel", "Select", "Selective residues cutoff", typeid(float), (void *) &selectiveThreshold, "^[0-9]*(\\.[0-9]+)?$", MMseqsParameter::COMMAND_PREFILTER),
         PARAM_S(PARAM_S_ID, "-s", "Sensitivity", "Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive", typeid(float), (void *) &sensitivity, "^[0-9]*(\\.[0-9]+)?$", MMseqsParameter::COMMAND_PREFILTER),
         PARAM_K(PARAM_K_ID, "-k", "k-mer length", "k-mer length (0: automatically set to optimum)", typeid(int), (void *) &kmerSize, "^[0-9]{1}[0-9]*$", MMseqsParameter::COMMAND_PREFILTER | MMseqsParameter::COMMAND_CLUSTLINEAR | MMseqsParameter::COMMAND_EXPERT),
         PARAM_TARGET_SEARCH_MODE(PARAM_TARGET_SEARCH_MODE_ID, "--target-search-mode", "Target search mode", "target search mode (0: regular k-mer, 1: similar k-mer)", typeid(int), (void *) &targetSearchMode, "^[0-1]{1}$", MMseqsParameter::COMMAND_PREFILTER | MMseqsParameter::COMMAND_CLUSTLINEAR | MMseqsParameter::COMMAND_EXPERT),
@@ -2462,6 +2463,7 @@ void Parameters::setDefaults() {
     alphabetSize = MultiParam<NuclAA<int>>(NuclAA<int>(21,5));
     maxSeqLen = MAX_SEQ_LEN; // 2^16
     maxResListLen = 300;
+    selectiveThreshold = 0.005;
     sensitivity = 4;
     split = AUTO_SPLIT_DETECTION;
     splitMode = DETECT_BEST_DB_SPLIT;

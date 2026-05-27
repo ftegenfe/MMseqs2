@@ -419,6 +419,7 @@ public:
     bool   includeIdentity;              // include identical ids as hit
 
     // PREFILTER
+    float  selectiveThreshold;           // selective residues cutoff fraction (0.005)
     float  sensitivity;                  // target sens
     int    kmerSize;                     // kmer size for the prefilter
     int targetSearchMode;                // target search mode
@@ -803,6 +804,7 @@ public:
 
     std::vector<MMseqsParameter*> removeParameter(const std::vector<MMseqsParameter*>& par, const MMseqsParameter& x);
 
+  PARAMETER(PARAM_SEL)
     PARAMETER(PARAM_S)
     PARAMETER(PARAM_K)
     PARAMETER(PARAM_TARGET_SEARCH_MODE)

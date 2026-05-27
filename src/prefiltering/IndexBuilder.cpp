@@ -56,7 +56,7 @@ public:
 void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** externalLookup,
                                 BaseMatrix &subMat, ScoreMatrix & three, ScoreMatrix & two, Sequence *seq,
                                 DBReader<unsigned int> *dbr, size_t dbFrom, size_t dbTo, int kmerThr,
-                                bool mask, bool maskLowerCaseMode, float maskProb, int maskNrepeats, int targetSearchMode) {
+                                bool mask, bool maskLowerCaseMode, float maskProb, int maskNrepeats, int targetSearchMode, float selectiveThreshold) {
     Debug(Debug::INFO) << "Index table: counting k-mers\n";
 
     Timer tpre;
@@ -226,7 +226,7 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     // Avoid false sharing: separate marking phase (parallel) from write phase (sequential)
     std::vector<bool> isNonSelective(indexTable->getTableSize(), false);
     const float dbSizeFloat = static_cast<float>(dbSize);
-    const float threshold = 0.005f;
+    const float threshold = selectiveThreshold; //0.005f;
     
     // Phase 1: Parallel marking (only reads from indexTable, writes to thread-local marks)
     {
