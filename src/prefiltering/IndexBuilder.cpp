@@ -217,7 +217,6 @@ void IndexBuilder::fillDatabase(IndexTable *indexTable, SequenceLookup ** extern
     Debug(Debug::INFO) << "Index table: remap data DONE " << tremap.lap() << '\n';
     //=========================================================================================================
     //TODO find smart way to remove extrem k-mers without harming huge protein families
-    // FT 22/5/2026 : This does not seem to work, it hangs or crashes.
     //
     Debug(Debug::INFO) << "Index table: Compute selective residues\n";
     size_t lowSelectiveResidues = 0;
